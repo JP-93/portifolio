@@ -1,12 +1,13 @@
 package main
 
 import (
-	"github.com/portifolio/kafka/consumer"
-	"github.com/portifolio/kafka/producer"
+	"context"
+
+	"kafka/v2/producer"
 )
 
 func main() {
-	producer.ProducerFunc()
-	consumer.ConsumerFunc()
+	ctx := context.Background()
+	go producer.StartProducer(ctx)
 
 }
