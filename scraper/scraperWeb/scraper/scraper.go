@@ -1,60 +1,39 @@
 package scraper
 
 import (
-	"fmt"
-	"net/http"
-	"strconv"
+	"encoding/csv"
+	"log"
+	"os"
 
-	"github.com/PuerkitoBio/goquery"
+	"github.com/gocolly/colly"
 )
 
-const url = "https://lista.mercadolivre.com.br/computador-gamer#D[A:computador%20gamer]"
+const url = "https://www.amazon.com.br/s?k=iphone&__mk_pt_BR=%C3%85M%C3%85%C5%BD%C3%95%C3%91&crid=1JVNU41JERTN0&sprefix=iphone%2Caps%2C221&ref=nb_sb_noss_1"
 
-type Products struct {
-	Description string `json:"description"`
-	Price       string `json:"price"`
-}
-
-func getResponse(url string) *http.Response {
-	resp, err := http.Get(url)
-
-	if err != nil {
-		panic(err)
-	}
-	if resp.StatusCode != 200 {
-		panic(fmt.Sprint("status code error: %d %s", resp.StatusCode, resp))
-	}
-
-	return resp
+type Description struct {
+	Title string
+	Price string
 }
 
 func StarScraper() {
-	res := getResponse(url)
-
-	doc, err := goquery.NewDocumentFromReader(res.Body)
+	file, err := os.Create("data.csv")
 	if err != nil {
-		panic(err)
+		log.Fatal("Error creating", err)
 	}
-	doc.Find("div.shops-custom-secondary-font").Each(func(i int, s *goquery.Selection) {
-		pr := Products{
-			Description: s.Find("h2.shops__item-title").Text(),
-		}
-		if pr.Description != "" {
-			fmt.Println(pr)
-		}
+	defer file.Close()
+	writer := csv.NewWriter(file)
+	defer writer.Flush()
+	header := []string{"title", "Price"}
+	writer.Write(header)
+
+	c := colly.NewCollector()
+	c.OnHTML("div.a-spacing-base", func(e *colly.HTMLElement) {
+		data := Description{}
+		data.Title = e.ChildText("span.a-text-normal")
+		data.Price = e.ChildText("span.a-price-whole")
+		row := []string{data.Title, data.Price}
+		writer.Write(row)
 
 	})
-	doc.Find("div.shops-custom-secondary-font").Each(func(i int, s *goquery.Selection) {
-		pr := Products{
-			Price: s.Find("span.price-tag-fraction").Text(),
-		}
-		if pr.Price != "" {
-			conv, _ := strconv.ParseFloat(pr.Price, 64)
-			if conv != 0 {
-				fmt.Printf("%.4f\n", conv)
-			}
-
-		}
-	})
-
+	c.Visit(url)
 }
