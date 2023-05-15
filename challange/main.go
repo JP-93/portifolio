@@ -8,7 +8,7 @@ import (
 )
 
 func main() {
-	fmt.Printf("Running")
+	fmt.Println("Running")
 	database_ch.ConnectDb()
 	route_ch.HandlerRoute()
 }

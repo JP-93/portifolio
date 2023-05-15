@@ -1,13 +1,17 @@
 package main
 
 import (
-	"fmt"
-
-	"scraper/v2/scraperWeb/scraper"
+	"github.com/gocolly/colly"
+	"github.com/zolamk/colly-postgres-storage/colly/postgres"
 )
 
 func main() {
-	fmt.Println("StarScraper...")
-	scraper.StarScraper()
+	c := colly.NewCollector()
+	storage := &postgres.Storage{
+		URI:                "",
+		VisitedTable:       "",
+		CookiesTable:       "",
+		MaxOpenConnections: 0,
+	}
 
 }
